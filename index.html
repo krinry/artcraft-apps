@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ArtCraft Apps — Unofficial Web Hub & Showcase</title>
+  <meta name="description" content="Unofficial community web mirror and showcase for all 13 open-source ArtCraft creative and productivity applications. Built in pure Rust, powered by WebAssembly & WebGPU.">
+  <link rel="icon" type="image/svg+xml" href="assets/artcraft-icon.svg">
+  
+  <!-- Fonts matching getartcraft.com -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #0b0b0c;
+      --bg-sunken: #050506;
+      --bg-surface: #111114;
+      --bg-card: #0e0e11;
+      --bg-card-hover: #141418;
+      --ink: #f2f1ee;
+      --ink-strong: #ffffff;
+      --muted: #8e8e96;
+      --faint: #4e4e56;
+      --line: #1e1e23;
+      --line-strong: #2e2e36;
+      --accent: #4e7bfb;
+      --accent-glow: rgba(78, 123, 251, 0.35);
+      --amber: #f59e0b;
+      --amber-bg: rgba(245, 158, 11, 0.1);
+      --amber-line: rgba(245, 158, 11, 0.25);
+      --invert-bg: #f2f1ee;
+      --invert-fg: #0b0b0c;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--ink);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Top Disclaimer Banner */
+    .top-disclaimer {
+      background: var(--bg-sunken);
+      border-bottom: 1px solid var(--line);
+      padding: 9px 24px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .hud-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 2px 7px;
+      border-radius: 2px;
+    }
+
+    .hud-tag.amber {
+      background: var(--amber-bg);
+      border: 1px solid var(--amber-line);
+      color: #fbbf24;
+    }
+
+    .top-disclaimer a {
+      color: var(--accent);
+      text-decoration: none;
+      cursor: pointer;
+      font-weight: 500;
+      transition: opacity 0.15s ease;
+    }
+
+    .top-disclaimer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Header Nav */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(12px);
+      background: rgba(11, 11, 12, 0.92);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .nav-container {
+      max-width: 1280px;
+      margin: 0 auto;
+      height: 52px;
+      display: flex;
+      align-items: stretch;
+      justify-content: space-between;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: stretch;
+    }
+
+    .brand-logo-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 20px;
+      border-right: 1px solid var(--line);
+      text-decoration: none;
+      color: var(--ink);
+      transition: opacity 0.15s ease;
+    }
+
+    .brand-logo-link:hover {
+      opacity: 0.85;
+    }
+
+    .brand-logo-img {
+      height: 22px;
+      width: auto;
+    }
+
+    .brand-title-wrap {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-name {
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--ink-strong);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .brand-sub {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: stretch;
+    }
+
+    .hud-nav-item {
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      border-left: 1px solid var(--line);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      transition: all 0.15s ease;
+      cursor: pointer;
+      background: transparent;
+      border-top: none;
+      border-bottom: none;
+      border-right: none;
+    }
+
+    .hud-nav-item:hover {
+      background: var(--bg-surface);
+      color: var(--ink-strong);
+    }
+
+    .hud-nav-item.highlight {
+      color: var(--ink-strong);
+    }
+
+    .hud-nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 0 20px;
+      height: 100%;
+      border-left: 1px solid var(--line);
+      background: var(--invert-bg);
+      color: var(--invert-fg);
+      text-decoration: none;
+      transition: opacity 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .hud-nav-btn:hover {
+      opacity: 0.85;
+    }
+
+    /* Technical container with corner ticks */
+    .hud-section {
+      position: relative;
+      max-width: 1280px;
+      margin: 0 auto;
+      border-left: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+    }
+
+    .tick {
+      position: absolute;
+      width: 11px;
+      height: 11px;
+      z-index: 30;
+      pointer-events: none;
+    }
+
+    .tick::before, .tick::after {
+      content: '';
+      position: absolute;
+      background: var(--line-strong);
+    }
+
+    .tick-tl { top: -6px; left: -6px; }
+    .tick-tr { top: -6px; right: -6px; }
+    .tick-bl { bottom: -6px; left: -6px; }
+    .tick-br { bottom: -6px; right: -6px; }
+
+    .tick::before { top: 5px; left: 0; width: 11px; height: 1px; }
+    .tick::after { top: 0; left: 5px; width: 1px; height: 11px; }
+
+    /* Sticky Section Eyebrow Header */
+    .hud-eyebrow-bar {
+      position: sticky;
+      top: 52px;
+      z-index: 35;
+      background: rgba(11, 11, 12, 0.94);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .hud-eyebrow-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hud-eyebrow-text .faint {
+      color: var(--faint);
+    }
+
+    /* Hero Section */
+    .hero-content {
+      padding: 64px 28px 48px;
+    }
+
+    .hero-title {
+      font-size: 3.25rem;
+      font-weight: 500;
+      line-height: 1.05;
+      letter-spacing: -0.035em;
+      color: var(--ink-strong);
+      max-width: 900px;
+      margin-bottom: 20px;
+    }
+
+    .hero-title .serif-italic {
+      font-family: 'Instrument Serif', Georgia, serif;
+      font-style: italic;
+      font-weight: 400;
+      color: var(--ink-strong);
+    }
+
+    .hero-desc {
+      font-size: 1.15rem;
+      color: var(--muted);
+      max-width: 680px;
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+
+    .hud-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1px;
+      background: var(--line);
+      border: 1px solid var(--line);
+      margin-top: 36px;
+    }
+
+    .hud-stat-cell {
+      background: var(--bg);
+      padding: 18px 22px;
+    }
+
+    .stat-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--faint);
+      margin-bottom: 6px;
+    }
+
+    .stat-val {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--ink-strong);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Controls Bar: Search & Filters */
+    .controls-bar {
+      border-bottom: 1px solid var(--line);
+      padding: 20px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      background: var(--bg-sunken);
+    }
+
+    .search-box {
+      position: relative;
+      flex: 1;
+      max-width: 480px;
+      min-width: 260px;
+    }
+
+    .search-box input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      padding: 10px 14px 10px 38px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    .search-box input:focus {
+      border-color: var(--accent);
+    }
+
+    .search-box svg {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      color: var(--faint);
+      pointer-events: none;
+    }
+
+    .cat-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .filter-btn {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 7px 14px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .filter-btn:hover {
+      color: var(--ink);
+      border-color: var(--line-strong);
+    }
+
+    .filter-btn.active {
+      background: var(--invert-bg);
+      color: var(--invert-fg);
+      border-color: var(--invert-bg);
+      font-weight: 700;
+    }
+
+    /* Apps Grid */
+    .apps-grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      gap: 1px;
+      background: var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .app-card {
+      background: var(--bg);
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transition: background-color 0.2s ease;
+    }
+
+    .app-card:hover {
+      background: var(--bg-card-hover);
+    }
+
+    .app-card-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .app-icon-wrap {
+      width: 58px;
+      height: 58px;
+      border-radius: 10px;
+      background: var(--bg-sunken);
+      border: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      overflow: hidden;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+    }
+
+    .app-icon-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .app-header-meta {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .app-name-line {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .app-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--ink-strong);
+    }
+
+    .app-version-chip {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--faint);
+    }
+
+    .app-comparison-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--accent);
+    }
+
+    .app-desc-text {
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.55;
+      margin-bottom: 18px;
+      flex-grow: 1;
+    }
+
+    .app-tags-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 22px;
+    }
+
+    .app-tag-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      padding: 2px 7px;
+      background: var(--bg-sunken);
+      border: 1px solid var(--line);
+      color: var(--faint);
+      border-radius: 2px;
+    }
+
+    .app-btn-row {
+      display: flex;
+      align-items: stretch;
+      gap: 8px;
+    }
+
+    .btn-launch-primary {
+      flex: 1;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 10px 16px;
+      background: var(--invert-bg);
+      color: var(--invert-fg);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: opacity 0.15s ease;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-launch-primary:hover {
+      opacity: 0.85;
+    }
+
+    .btn-preview-secondary {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 10px 14px;
+      background: var(--bg-surface);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-preview-secondary:hover {
+      color: var(--ink);
+      border-color: var(--line-strong);
+    }
+
+    /* Modal App Runner */
+    .runner-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.95);
+      z-index: 100;
+      display: none;
+      flex-direction: column;
+    }
+
+    .runner-overlay.open {
+      display: flex;
+    }
+
+    .runner-hud-header {
+      background: var(--bg-sunken);
+      border-bottom: 1px solid var(--line);
+      height: 52px;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .runner-identity {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .runner-identity img {
+      width: 28px;
+      height: 28px;
+      border-radius: 4px;
+    }
+
+    .runner-app-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--ink-strong);
+    }
+
+    .runner-status-chip {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      color: #10b981;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      padding: 2px 8px;
+    }
+
+    .runner-actions-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .runner-action-btn {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 7px 14px;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      color: var(--ink);
+      text-decoration: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .runner-action-btn:hover {
+      border-color: var(--line-strong);
+      background: var(--bg-surface);
+    }
+
+    .runner-action-btn.danger {
+      border-color: #7f1d1d;
+      color: #f87171;
+    }
+
+    .runner-action-btn.danger:hover {
+      background: #dc2626;
+      color: #fff;
+    }
+
+    .runner-iframe {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #18181b;
+    }
+
+    /* Legal Modal */
+    .legal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 95;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .legal-backdrop.open {
+      display: flex;
+    }
+
+    .legal-card {
+      background: var(--bg);
+      border: 1px solid var(--line-strong);
+      max-width: 700px;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 36px;
+      position: relative;
+    }
+
+    .legal-card h3 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--ink-strong);
+      margin-bottom: 20px;
+    }
+
+    .legal-card p {
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.65;
+      margin-bottom: 16px;
+    }
+
+    .legal-card h4 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ink);
+      margin-top: 24px;
+      margin-bottom: 8px;
+    }
+
+    .legal-close-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      width: 32px;
+      height: 32px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .legal-close-btn:hover {
+      color: var(--ink);
+      border-color: var(--line-strong);
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--line);
+      background: var(--bg-sunken);
+      padding: 60px 24px 40px;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .footer-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .footer-top-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 24px;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 28px;
+    }
+
+    .footer-brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .footer-links-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .footer-links-list a {
+      color: var(--muted);
+      text-decoration: none;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      transition: color 0.15s ease;
+    }
+
+    .footer-links-list a:hover {
+      color: var(--ink-strong);
+    }
+
+    .legal-disclaimer-card {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      padding: 22px 26px;
+      font-size: 0.78rem;
+      line-height: 1.65;
+      color: var(--faint);
+    }
+
+    .legal-disclaimer-card strong {
+      color: var(--muted);
+    }
+
+    .legal-disclaimer-card a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    /* Responsive */
+    @media (max-width: 840px) {
+      .hero-title {
+        font-size: 2.4rem;
+      }
+      .apps-grid-container {
+        grid-template-columns: 1fr;
+      }
+      .footer-top-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .hud-nav-item:not(.always-show) {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Disclaimer Notice -->
+  <div class="top-disclaimer">
+    <span class="hud-tag amber">⚠️ Unofficial Showcase</span>
+    <span>
+      Independent community mirror hosting the open-source web builds of <b>ArtCraft</b> (<a href="https://getartcraft.com" target="_blank" rel="noopener">getartcraft.com</a> / <a href="https://github.com/storytold" target="_blank" rel="noopener">storytold</a>).
+    </span>
+    <a onclick="openLegalModal()">Read Legal & Trademark Disclaimers &rarr;</a>
+  </div>
+
+  <!-- Header -->
+  <header>
+    <div class="nav-container">
+      <div class="brand-section">
+        <a href="#" class="brand-logo-link">
+          <img src="assets/artcraft-icon.svg" alt="ArtCraft Logo" class="brand-logo-img">
+          <div class="brand-title-wrap">
+            <span class="brand-name">ArtCraft <span class="hud-tag" style="background:#18181b; color:#a1a1aa; border:1px solid #27272a;">Web</span></span>
+            <span class="brand-sub">Community Mirror</span>
+          </div>
+        </a>
+      </div>
+      <div class="nav-right">
+        <a href="https://github.com/krinry/artcraft-apps" target="_blank" rel="noopener" class="hud-nav-item always-show" title="View repository on GitHub">
+          <svg style="width: 14px; height: 14px; margin-right: 6px;" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+          </svg>
+          krinry/artcraft-apps
+        </a>
+        <button class="hud-nav-item" onclick="openLegalModal()">
+          Legal
+        </button>
+        <a href="https://getartcraft.com" target="_blank" rel="noopener" class="hud-nav-item">
+          getartcraft.com
+        </a>
+        <a href="https://github.com/krinry/artcraft-apps" target="_blank" rel="noopener" class="hud-nav-btn">
+          ★ Star on GitHub
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main HUD Frame Container -->
+  <div class="hud-section">
+    <span class="tick tick-tl"></span>
+    <span class="tick tick-tr"></span>
+
+    <!-- Eyebrow 01 -->
+    <div class="hud-eyebrow-bar">
+      <div class="hud-eyebrow-text">
+        <span class="faint">01</span>
+        <span class="faint">/</span>
+        Overview
+      </div>
+      <div class="hud-eyebrow-text faint" style="display: none; sm:block;">
+        Pure Rust · WebAssembly · WebGPU
+      </div>
+    </div>
+
+    <!-- Hero Content -->
+    <div class="hero-content">
+      <h1 class="hero-title">
+        The Open-Source Creative Suite, <span class="serif-italic">for the web.</span>
+      </h1>
+      <p class="hero-desc">
+        All 13 professional creative and productivity tools rebuilt from the ground up in pure Rust. Hosted here for instant browser access — powered by WebAssembly and client-side GPU shaders.
+      </p>
+
+      <!-- Technical HUD Stats Grid -->
+      <div class="hud-stats-grid">
+        <div class="hud-stat-cell">
+          <div class="stat-label">01 / Language</div>
+          <div class="stat-val">🦀 100% Rust Engine</div>
+        </div>
+        <div class="hud-stat-cell">
+          <div class="stat-label">02 / Execution</div>
+          <div class="stat-val">⚡ WebAssembly + WebGPU</div>
+        </div>
+        <div class="hud-stat-cell">
+          <div class="stat-label">03 / Privacy</div>
+          <div class="stat-val">🔒 100% Client-Side</div>
+        </div>
+        <div class="hud-stat-cell">
+          <div class="stat-label">04 / Suite</div>
+          <div class="stat-val">📦 13 Integrated Apps</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Eyebrow 02: Applications -->
+    <div class="hud-eyebrow-bar" id="apps">
+      <div class="hud-eyebrow-text">
+        <span class="faint">02</span>
+        <span class="faint">/</span>
+        Applications Catalog
+      </div>
+      <div class="hud-eyebrow-text faint">
+        Official Press-Kit Assets Loaded
+      </div>
+    </div>
+
+    <!-- Search & Filters -->
+    <div class="controls-bar">
+      <div class="search-box">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+        <input type="text" id="searchInput" placeholder="Search app, category, or alternative (e.g. photoshop, excel)...">
+      </div>
+      <div class="cat-filters">
+        <button class="filter-btn active" data-category="all">All Apps (13)</button>
+        <button class="filter-btn" data-category="design">Design & Photo</button>
+        <button class="filter-btn" data-category="media">Video & Audio</button>
+        <button class="filter-btn" data-category="office">Office & Docs</button>
+        <button class="filter-btn" data-category="cad">3D & Engineering</button>
+      </div>
+    </div>
+
+    <!-- Apps Grid -->
+    <div class="apps-grid-container" id="appsGrid">
+      <!-- Injected by JavaScript -->
+    </div>
+
+    <span class="tick tick-bl"></span>
+    <span class="tick tick-br"></span>
+  </div>
+
+  <!-- In-app Runner Modal -->
+  <div class="runner-overlay" id="runnerOverlay">
+    <div class="runner-hud-header">
+      <div class="runner-identity">
+        <img id="runnerIcon" src="assets/artcraft-icon.svg" alt="App Icon">
+        <span id="runnerTitle" class="runner-app-name">Application</span>
+        <span class="runner-status-chip">Running in Sandbox (WASM)</span>
+      </div>
+      <div class="runner-actions-wrap">
+        <a href="#" id="runnerExternalBtn" target="_blank" rel="noopener" class="runner-action-btn">
+          ↗ Open in New Tab
+        </a>
+        <button id="runnerReloadBtn" class="runner-action-btn">
+          🔄 Reload
+        </button>
+        <button id="runnerCloseBtn" class="runner-action-btn danger">
+          ✕ Exit App
+        </button>
+      </div>
+    </div>
+    <iframe id="runnerFrame" class="runner-iframe" allow="fullscreen; clipboard-read; clipboard-write"></iframe>
+  </div>
+
+  <!-- Legal & Trademark Notice Modal -->
+  <div class="legal-backdrop" id="legalBackdrop" onclick="closeLegalModal(event)">
+    <div class="legal-card" onclick="event.stopPropagation()">
+      <button class="legal-close-btn" onclick="closeLegalModal()">✕</button>
+      <h3>Legal & Trademark Disclaimers</h3>
+      
+      <h4>01 / Unofficial Community Web Mirror</h4>
+      <p>
+        This website is an independent, non-commercial community project created solely for exploration, testing, and educational purposes. It is <strong>NOT</strong> an official service, nor is it endorsed by, affiliated with, or operated by <em>ArtCraft</em> or <em>storytold</em>.
+      </p>
+
+      <h4>02 / Upstream Credits & Open Source Licensing</h4>
+      <p>
+        All thirteen applications (PhotoCraft, VectorCraft, LightCraft, FilmCraft, EffectCraft, DesignCraft, FigCraft, WordCraft, GridCraft, DeckCraft, PdfCraft, SoundCraft, and CADCraft) were engineered and published by the <strong>ArtCraft development community</strong> (<a href="https://getartcraft.com" target="_blank" rel="noopener" style="color:var(--accent);">getartcraft.com</a> / <a href="https://github.com/storytold" target="_blank" rel="noopener" style="color:var(--accent);">github.com/storytold</a>) under permissive open-source licenses (MIT License and Apache License 2.0). All source code copyright belongs to the original authors.
+      </p>
+
+      <h4>03 / Nominative Fair-Use Trademark Notice</h4>
+      <p>
+        References to third-party proprietary commercial applications (such as <em>Adobe Photoshop, Adobe Illustrator, Adobe Lightroom, Adobe Premiere Pro, Adobe After Effects, Adobe InDesign, Adobe Acrobat, Microsoft Word, Microsoft Excel, Microsoft PowerPoint, Figma, Autodesk AutoCAD,</em> and <em>Avid Pro Tools</em>) are made strictly for descriptive, identification, and fair-use comparison purposes. All trademarks, registered trademarks, and product names belong to their respective corporate trademark holders. This site and its author have no affiliation, sponsorship, or association with Adobe Inc., Microsoft Corporation, Figma Inc., Autodesk Inc., or Avid Technology.
+      </p>
+
+      <h4>04 / Local Client-Side Execution</h4>
+      <p>
+        Every application runs entirely on your local CPU and GPU through WebAssembly and WebGPU inside your web browser. No documents, canvases, or personal data are ever uploaded or transmitted to any remote server.
+      </p>
+
+      <h4>05 / Repository Source</h4>
+      <p>
+        The source code for this web deployment is publicly available at <a href="https://github.com/krinry/artcraft-apps" target="_blank" rel="noopener" style="color:var(--accent);">github.com/krinry/artcraft-apps</a>.
+      </p>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-top-row">
+        <div class="footer-brand-wrap">
+          <img src="assets/artcraft-icon.svg" alt="ArtCraft Logo" style="height: 24px;">
+          <div>
+            <strong style="color: var(--ink-strong); font-size: 0.95rem;">ArtCraft Web Apps</strong>
+            <p style="font-size: 0.72rem; color: var(--faint);">Unofficial Web Mirror & Showcase</p>
+          </div>
+        </div>
+        <div class="footer-links-list">
+          <a href="https://github.com/krinry/artcraft-apps" target="_blank" rel="noopener">GitHub: krinry/artcraft-apps</a>
+          <a href="https://getartcraft.com" target="_blank" rel="noopener">Official getartcraft.com</a>
+          <a href="https://github.com/storytold" target="_blank" rel="noopener">Upstream: storytold</a>
+          <a href="https://discord.gg/artcraft" target="_blank" rel="noopener">Discord</a>
+          <a onclick="openLegalModal()" style="cursor: pointer; color: var(--accent);">Legal Notice</a>
+        </div>
+      </div>
+
+      <div class="legal-disclaimer-card">
+        <strong>Legal Disclaimer:</strong> This website is an independent community mirror for open-source software built by <a href="https://getartcraft.com" target="_blank" rel="noopener">ArtCraft</a> (Apache-2.0 / MIT). Third-party trademarks (Adobe Photoshop®, Illustrator®, Lightroom®, Premiere®, After Effects®, InDesign®, Acrobat®, Microsoft Word®, Excel®, PowerPoint®, Figma®, Pro Tools®, AutoCAD®) are used strictly under nominative fair use for descriptive comparison. Not affiliated with Adobe, Microsoft, Figma, Autodesk, Avid, or ArtCraft.
+      </div>
+
+      <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--faint);">
+        <span>Built with 100% Pure Rust & WebAssembly</span>
+        <a href="https://github.com/krinry/artcraft-apps" target="_blank" rel="noopener" style="color: var(--muted); text-decoration: none;">GitHub: krinry/artcraft-apps</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const apps = [
+      {
+        id: 'photocraft',
+        name: 'PhotoCraft',
+        icon: 'assets/icons/photocraft.png',
+        category: 'design',
+        alt: 'Photoshop Alternative',
+        version: 'v0.8.2',
+        description: 'Clean-room reimplementation of Photoshop in pure Rust. Layers, masks, 16 live non-destructive adjustment layers, blend modes, brushes, and real layered PSD import/export.',
+        tags: ['Layers', '16 Adjustments', 'PSD Support', 'Brushes', 'GPU Blends']
+      },
+      {
+        id: 'vectorcraft',
+        name: 'VectorCraft',
+        icon: 'assets/icons/vectorcraft.png',
+        category: 'design',
+        alt: 'Illustrator Alternative',
+        version: 'v0.10.0',
+        description: 'Precision vector illustration and graphic design workbench. Advanced Bézier pen tools, boolean pathfinder operations, typography engines, gradient meshes, and SVG workflows.',
+        tags: ['Bézier Pen', 'Boolean Paths', 'SVG Workflows', 'Typography', 'Gradients']
+      },
+      {
+        id: 'lightcraft',
+        name: 'LightCraft',
+        icon: 'assets/icons/lightcraft.png',
+        category: 'design',
+        alt: 'Lightroom Alternative',
+        version: 'v0.7.1',
+        description: 'Non-destructive photo editing and RAW image developing. Tone curves, exposure correction, white balance calibration, per-channel color grading, and high-fidelity photo exports.',
+        tags: ['RAW Developer', 'Tone Curves', 'Color Grading', 'Exposure', 'Batch Export']
+      },
+      {
+        id: 'filmcraft',
+        name: 'FilmCraft',
+        icon: 'assets/icons/filmcraft.png',
+        category: 'media',
+        alt: 'Premiere Pro Alternative',
+        version: 'v0.7.2',
+        description: 'Nonlinear multi-track video editing studio. Multi-track audio and video timeline, clip trimming, transitions, GPU-accelerated video filters, and real-time playback compositing.',
+        tags: ['Multi-track Timeline', 'Clip Trimming', 'Audio Mixing', 'Video Filters', 'GPU Preview']
+      },
+      {
+        id: 'effectcraft',
+        name: 'EffectCraft',
+        icon: 'assets/icons/effectcraft.png',
+        category: 'media',
+        alt: 'After Effects Alternative',
+        version: 'v0.9.2',
+        description: 'Motion graphics and visual effects compositing suite. Node-based graph layers, timeline keyframing, audio-reactive shaders, particle systems, and kinetic typography.',
+        tags: ['VFX Nodes', 'Keyframing', 'Motion Graphics', 'Particles', 'Shaders']
+      },
+      {
+        id: 'designcraft',
+        name: 'DesignCraft',
+        icon: 'assets/icons/designcraft.png',
+        category: 'design',
+        alt: 'InDesign Alternative',
+        version: 'v0.7.1',
+        description: 'Multi-page document layout and desktop publishing editor. Master page templates, baseline grids, typographic hierarchy, threaded text frames, and print-ready PDF export.',
+        tags: ['Page Layout', 'Master Pages', 'Typography Grids', 'Print Design', 'PDF Export']
+      },
+      {
+        id: 'figcraft',
+        name: 'FigCraft',
+        icon: 'assets/icons/figcraft.png',
+        category: 'design',
+        alt: 'Figma Alternative',
+        version: 'v0.5.1',
+        description: 'User interface design and interactive component prototyping tool. Dynamic artboards and frames, auto-layout, interactive UI components, vector assets, and design systems.',
+        tags: ['UI/UX Design', 'Frames', 'Auto-Layout', 'Components', 'Prototyping']
+      },
+      {
+        id: 'wordcraft',
+        name: 'WordCraft',
+        icon: 'assets/icons/wordcraft.png',
+        category: 'office',
+        alt: 'Microsoft Word Alternative',
+        version: 'v0.6.1',
+        description: 'Clean-room word processor reimplemented in pure Rust. High-speed rich text formatting, heading hierarchies, document styles, tables, citations, and DOCX document export.',
+        tags: ['Rich Text', 'Styles & Headings', 'Tables', 'DOCX Compatible', 'Fast Engine']
+      },
+      {
+        id: 'gridcraft',
+        name: 'GridCraft',
+        icon: 'assets/icons/gridcraft.png',
+        category: 'office',
+        alt: 'Microsoft Excel Alternative',
+        version: 'v0.6.1',
+        description: 'Clean-room spreadsheet engine in pure Rust. Lightning-fast formula recalculation, millions of grid cells, mathematical functions, data filtering, and workbook compatibility.',
+        tags: ['Formulas', 'Millions of Cells', 'Data Grids', 'XLSX Support', 'Fast Math']
+      },
+      {
+        id: 'deckcraft',
+        name: 'DeckCraft',
+        icon: 'assets/icons/deckcraft.png',
+        category: 'office',
+        alt: 'PowerPoint Alternative',
+        version: 'v0.6.1',
+        description: 'Slide presentations and deck creator. Vector shape layouts, rich typography slides, presenter mode with speaker notes, slide transitions, and slideshow playback.',
+        tags: ['Slide Decks', 'Presenter View', 'Speaker Notes', 'Transitions', 'Shapes']
+      },
+      {
+        id: 'pdfcraft',
+        name: 'PdfCraft',
+        icon: 'assets/icons/pdfcraft.png',
+        category: 'office',
+        alt: 'Acrobat Alternative',
+        version: 'v0.7.1',
+        description: 'Lightweight, offline PDF reader and workbench. View, split, merge, reorder, rotate pages, extract text, annotate, and protect PDF documents offline with zero server uploads.',
+        tags: ['Merge & Split', 'Reorder Pages', 'Annotate', 'Rotate', 'Offline PDF']
+      },
+      {
+        id: 'soundcraft',
+        name: 'SoundCraft',
+        icon: 'assets/icons/soundcraft.png',
+        category: 'media',
+        alt: 'Pro Tools Alternative',
+        version: 'v0.6.1',
+        description: 'Digital audio workstation in pure Rust. Multi-track audio recording, editing, waveform analysis, channel mixing, audio effects, and low-latency audio processing.',
+        tags: ['Multi-track DAW', 'Audio Mixing', 'Waveforms', 'Audio Effects', 'Low Latency']
+      },
+      {
+        id: 'cadcraft',
+        name: 'CADCraft',
+        icon: 'assets/icons/cadcraft.png',
+        category: 'cad',
+        alt: 'AutoCAD Alternative',
+        version: 'v0.6.2',
+        description: 'Computer-aided design and drafting in pure Rust. Precision 2D/3D geometry, snap guides, coordinate input, layers, dimensioning, and drafting workflows.',
+        tags: ['2D/3D Drafting', 'Snap Precision', 'Coordinates', 'Layers', 'CAD Geometry']
+      }
+    ];
+
+    const grid = document.getElementById('appsGrid');
+    const searchInput = document.getElementById('searchInput');
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const runnerOverlay = document.getElementById('runnerOverlay');
+    const runnerFrame = document.getElementById('runnerFrame');
+    const runnerTitle = document.getElementById('runnerTitle');
+    const runnerIcon = document.getElementById('runnerIcon');
+    const runnerExternalBtn = document.getElementById('runnerExternalBtn');
+    const runnerReloadBtn = document.getElementById('runnerReloadBtn');
+    const runnerCloseBtn = document.getElementById('runnerCloseBtn');
+    const legalBackdrop = document.getElementById('legalBackdrop');
+
+    let currentCategory = 'all';
+    let searchQuery = '';
+
+    function renderCards() {
+      grid.innerHTML = '';
+      const filtered = apps.filter(app => {
+        const matchesCategory = currentCategory === 'all' || app.category === currentCategory;
+        const query = searchQuery.toLowerCase();
+        const matchesSearch = query === '' || 
+          app.name.toLowerCase().includes(query) ||
+          app.alt.toLowerCase().includes(query) ||
+          app.description.toLowerCase().includes(query) ||
+          app.tags.some(t => t.toLowerCase().includes(query));
+        return matchesCategory && matchesSearch;
+      });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div style="grid-column: 1 / -1; background: var(--bg); text-align: center; padding: 80px 24px; color: var(--muted);">
+            <div style="font-size: 36px; margin-bottom: 12px; opacity: 0.6;">🔍</div>
+            <h3 style="color: var(--ink-strong); margin-bottom: 8px; font-size: 1.15rem;">No matching applications found</h3>
+            <p style="font-size: 0.85rem;">Try another keyword or reset the category filter.</p>
+          </div>
+        `;
+        return;
+      }
+
+      filtered.forEach(app => {
+        const card = document.createElement('div');
+        card.className = 'app-card';
+
+        const appUrl = `./apps/${app.id}/`;
+        const tagsHtml = app.tags.map(t => `<span class="app-tag-pill">${t}</span>`).join('');
+
+        card.innerHTML = `
+          <div class="app-card-header">
+            <div class="app-icon-wrap">
+              <img src="${app.icon}" alt="${app.name} icon" class="app-icon-img" onerror="this.src='assets/artcraft-icon.svg'">
+            </div>
+            <div class="app-header-meta">
+              <div class="app-name-line">
+                <span class="app-title">${app.name}</span>
+                <span class="app-version-chip">${app.version}</span>
+              </div>
+              <div class="app-comparison-tag">${app.alt}</div>
+            </div>
+          </div>
+          <p class="app-desc-text">${app.description}</p>
+          <div class="app-tags-list">
+            ${tagsHtml}
+          </div>
+          <div class="app-btn-row">
+            <a href="${appUrl}" class="btn-launch-primary" target="_blank" rel="noopener">
+              Launch App ↗
+            </a>
+            <button class="btn-preview-secondary" onclick="openRunner('${app.id}')" title="Preview inside portal runner">
+              Preview
+            </button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    window.openRunner = function(appId) {
+      const app = apps.find(a => a.id === appId);
+      if (!app) return;
+      const appUrl = `./apps/${app.id}/`;
+      runnerTitle.textContent = app.name;
+      runnerIcon.src = app.icon;
+      runnerExternalBtn.href = appUrl;
+      runnerFrame.src = appUrl;
+      runnerOverlay.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    };
+
+    function closeRunner() {
+      runnerOverlay.classList.remove('open');
+      runnerFrame.src = 'about:blank';
+      document.body.style.overflow = 'auto';
+    }
+
+    runnerCloseBtn.addEventListener('click', closeRunner);
+    runnerReloadBtn.addEventListener('click', () => {
+      runnerFrame.src = runnerFrame.src;
+    });
+
+    window.openLegalModal = function() {
+      legalBackdrop.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    };
+
+    window.closeLegalModal = function(e) {
+      if (e && e.target !== legalBackdrop) return;
+      legalBackdrop.classList.remove('open');
+      if (!runnerOverlay.classList.contains('open')) {
+        document.body.style.overflow = 'auto';
+      }
+    };
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (legalBackdrop.classList.contains('open')) {
+          closeLegalModal();
+        } else if (runnerOverlay.classList.contains('open')) {
+          closeRunner();
+        }
+      }
+    });
+
+    searchInput.addEventListener('input', (e) => {
+      searchQuery = e.target.value.trim();
+      renderCards();
+    });
+
+    filterButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentCategory = btn.getAttribute('data-category');
+        renderCards();
+      });
+    });
+
+    renderCards();
+  </script>
+</body>
+</html>

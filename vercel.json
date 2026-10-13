@@ -1,0 +1,39 @@
+{
+  "version": 2,
+  "redirects": [
+    { "source": "/cadcraft", "destination": "/apps/cadcraft/", "permanent": false },
+    { "source": "/deckcraft", "destination": "/apps/deckcraft/", "permanent": false },
+    { "source": "/designcraft", "destination": "/apps/designcraft/", "permanent": false },
+    { "source": "/effectcraft", "destination": "/apps/effectcraft/", "permanent": false },
+    { "source": "/figcraft", "destination": "/apps/figcraft/", "permanent": false },
+    { "source": "/filmcraft", "destination": "/apps/filmcraft/", "permanent": false },
+    { "source": "/gridcraft", "destination": "/apps/gridcraft/", "permanent": false },
+    { "source": "/lightcraft", "destination": "/apps/lightcraft/", "permanent": false },
+    { "source": "/pdfcraft", "destination": "/apps/pdfcraft/", "permanent": false },
+    { "source": "/photocraft", "destination": "/apps/photocraft/", "permanent": false },
+    { "source": "/soundcraft", "destination": "/apps/soundcraft/", "permanent": false },
+    { "source": "/vectorcraft", "destination": "/apps/vectorcraft/", "permanent": false },
+    { "source": "/wordcraft", "destination": "/apps/wordcraft/", "permanent": false }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)\\.wasm",
+      "headers": [
+        { "key": "Content-Type", "value": "application/wasm" },
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/(.*)\\.js",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" }
+      ]
+    }
+  ]
+}
